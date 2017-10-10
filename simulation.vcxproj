@@ -168,11 +168,14 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Body.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Drag.cpp" />
+    <ClCompile Include="Gravity.cpp" />
+    <ClCompile Include="Hook.cpp" />
+    <ClCompile Include="MassSprings\MassSpringsMain.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Motion\Dynamics\DynamicForce.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Particle.cpp" />
+    <ClCompile Include="MassSprings\Simulation.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -184,12 +187,15 @@
     <ClInclude Include="Body.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Drag.h" />
+    <ClInclude Include="Force.h" />
+    <ClInclude Include="Gravity.h" />
+    <ClInclude Include="Hook.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Motion\Dynamics\DynamicForce.hpp" />
-    <ClInclude Include="Motion\IForce.hpp" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="MassSprings\Simulation.hpp" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

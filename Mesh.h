@@ -66,7 +66,7 @@ namespace GPhysix
 			m_translate[3][2] = position[2];
 		}
 		// set i_th coordinate of mesh center to float p (x: i=0, y: i=1, z: i=2)
-		void setPos(int i, float p) { m_translate[3][i] = p; }
+		inline void setPos(int i, float p) { m_translate[3][i] = p; }
 
 		// allocate shader to mesh
 		void setShader(const Shader &shader) {
@@ -86,12 +86,7 @@ namespace GPhysix
 		// create mesh from model (typically loaded from a file)
 		void InitMesh(const IndexedModel& model);
 		// load .obj file
-		void loadOBJ(const char * path,
-			std::vector < glm::vec3 > & out_vertices,
-			std::vector < glm::vec2 > & out_uvs,
-			std::vector < glm::vec3 > & out_normals
-		);
-
+		void loadOBJ(const char *path, std::vector <glm::vec3> &out_vertices, std::vector <glm::vec2> &out_uvs, std::vector <glm::vec3> &out_normals);
 
 		/*
 		** TRANSFORMATION METHODS
