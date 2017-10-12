@@ -2,7 +2,7 @@
 
 using namespace GPhysix;
 
-Particle::Particle()
+Particle::Particle() : Body()
 {
 	setMesh(Mesh::Mesh());
 	scale(glm::vec3(.1f, .1f, .1f));
@@ -15,8 +15,6 @@ Particle::Particle()
 	// physical properties
 	setMass(1.0f);
 	setCor(1.0f);
-
-	Body::Body();
 }
 
 Particle::~Particle()
@@ -24,7 +22,7 @@ Particle::~Particle()
 
 }
 
-void Particle::move(glm::vec3 newVel, glm::vec3 newPos)
+void Particle::move(const glm::vec3 &newVel, const glm::vec3 &newPos)
 {
 	setVel(newVel);
 	setPos(newPos);

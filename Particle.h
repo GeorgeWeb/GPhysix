@@ -12,6 +12,6 @@ namespace GPhysix
 			Particle();
 			~Particle();
 			
-			void move(glm::vec3 newVel, glm::vec3 newPos);
+			void move(const glm::vec3 &newVel, const glm::vec3 &newPos);
 	};
 }
