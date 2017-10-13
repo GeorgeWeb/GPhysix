@@ -1,0 +1,9 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+configuration: Debug
+platform: x86
+build:
+  project: simulation.sln
+  verbosity: minimal
+test: off
+deploy: off
