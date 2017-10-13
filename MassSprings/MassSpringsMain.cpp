@@ -3,7 +3,7 @@
 using namespace GPhysix;
 
 // Chain5, Chain10, Trampoline, Flag
-#define Flag
+#define Chain5
 
 static Simulation sim;
 
