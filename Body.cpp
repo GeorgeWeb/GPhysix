@@ -38,15 +38,11 @@ void Body::addForce(Force *force)
 
 const glm::vec3 &GPhysix::Body::applyForces(const glm::vec3 &pos, const glm::vec3 &vel)
 {
+	// init accumulator
 	glm::vec3 fAccumulator = glm::vec3(0.0f);
-
-	auto applyForceToEachBody = [&](auto *force)
-	{ 
-		fAccumulator += force->apply(m_mass, pos, vel);
-	};
-
-	std::for_each(m_forces.begin(), m_forces.end(), applyForceToEachBody);
-
+	// sum/accum forces
+	for (auto &f : m_forces) fAccumulator += f->apply(getMass(), pos, vel);
+	// return force/mass
 	return fAccumulator / getMass();
 }
 

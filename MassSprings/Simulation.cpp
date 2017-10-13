@@ -9,7 +9,7 @@ Simulation::Simulation() :
 {
 	// initialize application
 	m_app.initRender();
-	Application::camera.setCameraPosition(glm::vec3(0.0f, 7.5f, 22.5f));
+	Application::camera.setCameraPosition(glm::vec3(0.0f, 5.0f, 10.0f));
 }
 
 Simulation::~Simulation()
@@ -74,12 +74,12 @@ void Simulation::CollisionDetectionForCloth(const Mesh &boundingBox, Particle &p
 		if (!inBoundaries(particle.getMesh(), boundingBox, i))
 		{
 			// Change particle's direction to its opposite direction vector
-			particle.getVel()[i] *= -0.5f;
+			particle.getVel()[i] *= -.9f;
 			// Minimums check to stabilize the particle
 			if (particle.getPos()[i] < boundingBox.getPos()[i] + .5f)
 			{
 				particle.getPos()[i] = boundingBox.getPos()[i] + .5f;
-				particle.getVel() *= -0.5f; ///> TODO: Implement friction force instead
+				particle.getVel() *= -.9f; ///> TODO: Implement friction force instead
 			}
 		}
 	}

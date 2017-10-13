@@ -2,7 +2,7 @@
 
 using namespace GPhysix;
 
-// Chain5, Chain10, Flag, Trampoline
+// Chain5, Chain10, Trampoline, Flag
 #define Flag
 
 static Simulation sim;
@@ -10,7 +10,6 @@ static Simulation sim;
 #ifdef Chain5
 constexpr size_t particleSize = 5;
 constexpr size_t hookSize = 4;
-
 std::array<Particle, particleSize> particles;
 std::array<Hook, hookSize> hooks;
 std::array<Hook, hookSize> reverseHooks;
@@ -18,32 +17,30 @@ std::array<Hook, hookSize> reverseHooks;
 #elif defined(Chain10)
 constexpr size_t particleSize = 10;
 constexpr size_t hookSize = 9;
-
 std::array<Particle, particleSize> particles;
 std::array<Hook, hookSize> hooks;
 std::array<Hook, hookSize> reverseHooks;
 
 #elif (defined Flag) || (defined Trampoline)
 constexpr size_t particleSize = 10;
-
 std::array<std::array<Particle, particleSize>, particleSize> particles;
 std::array<std::array<Hook, 9>, 10> leftHooks;
 std::array<std::array<Hook, 9>, 10> rightHooks;
 std::array<std::array<Hook, 10>, 9> downHooks;
 std::array<std::array<Hook, 10>, 9> upHooks;
-
-#else
-// TODO: Error it somehow
 #endif
 
 Gravity grav;
 Drag drag;
+Aero aero;
+Wind wind;
 
 Mesh plane;
 Mesh boundingBox;
 
 /*** HELPER FUNCTION PROTOTYPES ***/
-void CreateHookForces(const float &ks, const float &kd, const float &rest);
+void CreateHookForces(const float ks, const float kd, const float rest);
+void AddAerodynamicForce();
 void LinkHooksWithParticles();
 void UpdateChainOfFive(bool damp);
 void UpdateChainOfTen(bool damp, bool collision);
@@ -116,24 +113,27 @@ int main()
 	boundingBox = Mesh::Mesh();
 	boundingBox.scale(glm::vec3(20.0f, 20.0f, 20.0f));
 	#ifndef Chain10
-	boundingBox.translate(glm::vec3(-20.0f, .0f, -20.0f));
+	boundingBox.translate(glm::vec3(-20.0f, 0.0f, -20.0f));
+	#else
+	boundingBox.translate(glm::vec3(-10.0f, 0.0f, -10.0f));
 	#endif
 	/*** FORCES **/
-	grav = Gravity::Gravity();
-	drag = Drag::Drag();
-
-	float ks = 5.0f, kd = 9.0f, rest = 0.5f;
-
-	CreateHookForces(ks, kd, rest);
+	drag.setDrag(glm::vec3(1.25f, .5f, .5f));
+	aero.setAero(1.25f, 1.1f);
+	wind.setWind(glm::vec3(3.0f, 6.0f, 0.0f));
 
 	#if (defined Chain5) || (defined Chain10)
 	size_t partCount = 0;
-	float spanX = 0.0f;
+	float spanX = -4.0f;
 	// create 1d particles and add 1d hook forces to them
 	std::for_each(particles.begin(), particles.end(), [&](Particle &particle)
 	{
 		// create each particle with default values
-		sim.CreateParticle(particle, glm::vec3(spanX, plane.getPos().y + 7.5f, 0.0f));
+		#ifdef Chain5 
+		sim.CreateParticle(particle, glm::vec3(spanX + 2.0f, plane.getPos().y + 7.5f, 0.0f));
+		#else
+		sim.CreateParticle(particle, glm::vec3(spanX, plane.getPos().y + 5.0f, 0.0f));
+		#endif
 		// add force values to particles (ignore the first one - stationary)
 		if (partCount > 0)
 		{
@@ -157,10 +157,15 @@ int main()
 		std::for_each(particleRows.begin(), particleRows.end(), [&](Particle &particle)
 		{
 			// create each particle with default values
+			#ifdef Trampoline
 			sim.CreateParticle(particle, glm::vec3(-5.0f + spanX, plane.getPos().y + 7.5f, spanZ));
+			#elif defined (Flag)
+			sim.CreateParticle(particle, glm ::vec3(-5.0f + spanX, plane.getPos().y + 10.0f, spanZ));
+			#endif
 			// add force values to particles (ignore the first one - stationary)
 			particle.addForce(&grav);
 			particle.addForce(&drag);
+			particle.addForce(&wind);
 			// update 'x-pos' span
 			spanX++;
 			// update particle index counter
@@ -174,8 +179,19 @@ int main()
 	// TODO: Error it somehow
 	return;
 	#endif
-
+	float ks, kd, rest;
+#ifdef Trampoline
+	ks = 9.0f; kd = 2.0f; rest = .5f;
+#elif defined (Flag)
+	ks = 13.0f; kd = 3.0f; rest = .5f;
+#else
+	ks = 10.0f; kd = 20.0f; rest = .5f;
+#endif
+	CreateHookForces(ks, kd, rest);
 	LinkHooksWithParticles();
+
+	// Link Aerodyamic drag force with particles
+	AddAerodynamicForce();
 
 	// run the simulation program
 	// game loop
@@ -196,7 +212,7 @@ int main()
 	return EXIT_SUCCESS;
 }
 
-void CreateHookForces(const float &ks, const float &kd, const float &rest)
+void CreateHookForces(const float ks, const float kd, const float rest)
 {
 	#if (defined Chain5) || (defined Chain10)
 	// create 1d hook forces
@@ -214,7 +230,7 @@ void CreateHookForces(const float &ks, const float &kd, const float &rest)
 	{
 		std::for_each(hooks.begin(), hooks.end(), [&](Hook &hook)
 		{
-			hook = Hook::Hook(ks, kd, rest * 0.1f);
+			hook = Hook::Hook(ks, kd, rest);
 		});
 	});
 	// !LEFT->RIGHT HOOK FORCES
@@ -224,7 +240,7 @@ void CreateHookForces(const float &ks, const float &kd, const float &rest)
 	{
 		std::for_each(hooks.begin(), hooks.end(), [&](Hook &hook)
 		{
-			hook = Hook::Hook(ks, kd, rest * 0.1f);
+			hook = Hook::Hook(ks, kd, rest);
 		});
 	});
 	// !RIGHT->LEFT HOOK FORCES
@@ -234,7 +250,7 @@ void CreateHookForces(const float &ks, const float &kd, const float &rest)
 	{
 		std::for_each(hooks.begin(), hooks.end(), [&](Hook &hook)
 		{
-			hook = Hook::Hook(ks, kd, rest * 2.0f);
+			hook = Hook::Hook(ks, kd, rest);
 		});
 	});
 	// !DOWN->UP HOOK FORCES
@@ -244,13 +260,37 @@ void CreateHookForces(const float &ks, const float &kd, const float &rest)
 	{
 		std::for_each(hooks.begin(), hooks.end(), [&](Hook &hook)
 		{
-			hook = Hook::Hook(ks, kd, rest * 2.0f);
+			hook = Hook::Hook(ks, kd, rest);
 		});
 	});
 	// !UP->DOWN HOOK FORCES
 	#else
 	// TODO: Error it somehow
 	return;
+	#endif
+}
+
+void AddAerodynamicForce()
+{
+	#ifdef Flag
+	// add wind force to the aerodynamic drag force
+	aero.addWind(&wind);
+	for (size_t row = 0; row < particleSize - 2; row++)
+	{
+		for (size_t col = 0; row < particleSize - 2; row++)
+		{
+			// First triangle
+			aero.setTriangle(&particles[row][col], &particles[row + 1][col], &particles[row][col + 1]);
+			particles[row][col].addForce(&aero);
+			particles[row + 1][col].addForce(&aero);
+			particles[row][col + 1].addForce(&aero);
+			// Second triangle
+			aero.setTriangle(&particles[row + 1][col + 1], &particles[row + 1][col], &particles[row][col + 1]);
+			particles[row + 1][col + 1].addForce(&aero);
+			particles[row + 1][col].addForce(&aero);
+			particles[row][col + 1].addForce(&aero);
+		}
+	}
 	#endif
 }
 
@@ -346,7 +386,7 @@ void LinkHooksWithParticles()
 
 void UpdateChainOfFive(bool damp)
 {
-#ifdef Chain5
+	#ifdef Chain5
 	// apply forces to particles to calc. acceleration
 	for (int i = 1; i < particles.size(); i++)
 		particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel()));
@@ -364,12 +404,12 @@ void UpdateChainOfFive(bool damp)
 		// recalculate frames
 		sim.getAccumultor() -= sim.deltaTime;
 	}
-#endif
+	#endif
 }
 
 void UpdateChainOfTen(bool damp, bool collision)
 {
-#ifdef Chain10
+	#ifdef Chain10
 	// apply forces to particles to calc. acceleration
 	for (int i = 1; i < particles.size() - 1; i++)
 		particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel()));
@@ -390,12 +430,12 @@ void UpdateChainOfTen(bool damp, bool collision)
 
 	// Apply collision to particles - ignore the first(stationary) particle
 	std::for_each(particles.begin() + 1, particles.end(), [&](Particle &particle) { sim.CollisionDetection(boundingBox, particle); });
-#endif
+	#endif
 }
 
 void UpdateTrampoline(bool collision, bool friction)
 {
-#ifdef Trampoline
+	#ifdef Trampoline
 	// apply forces to particles to calc. acceleration
 	std::for_each(particles.begin() + 1, particles.end() - 1, [&](std::array<Particle, particleSize> &particleRows)
 	{
@@ -431,7 +471,6 @@ void UpdateTrampoline(bool collision, bool friction)
 			sim.CollisionDetectionForCloth(boundingBox, particle);
 		});
 	});
-	
 #endif
 }
 

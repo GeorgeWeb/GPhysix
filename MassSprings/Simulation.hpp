@@ -14,9 +14,7 @@
 #include "../Application.h"
 #include "../Shader.h"
 #include "../Particle.h"
-#include "../Gravity.h"
-#include "../Drag.h"
-#include "../Hook.h"
+#include "../Force.h"
 
 namespace GPhysix
 {

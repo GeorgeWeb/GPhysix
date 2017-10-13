@@ -176,6 +176,8 @@
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="MassSprings\Simulation.cpp" />
+    <ClCompile Include="Aero.cpp" />
+    <ClCompile Include="Wind.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -187,10 +189,7 @@
     <ClInclude Include="Body.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="Drag.h" />
     <ClInclude Include="Force.h" />
-    <ClInclude Include="Gravity.h" />
-    <ClInclude Include="Hook.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Particle.h" />
