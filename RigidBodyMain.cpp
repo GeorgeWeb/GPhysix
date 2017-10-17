@@ -4,7 +4,7 @@
 
 auto main(void) -> int
 {
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 #endif
