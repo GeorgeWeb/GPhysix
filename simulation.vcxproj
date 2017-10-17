@@ -177,6 +177,7 @@
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="MassSprings\Simulation.cpp" />
     <ClCompile Include="Aero.cpp" />
+    <ClCompile Include="RigidBodyMain.cpp" />
     <ClCompile Include="Wind.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>

@@ -7,29 +7,7 @@ Body::Body()
 { }
 
 Body::~Body()
-{
-	/*
-	if (!getForces().empty())
-	{
-		auto deleteForce = [](auto *force)
-		{
-			if (force != nullptr)
-			{
-				try
-				{
-					delete force;
-					force = nullptr;
-				}
-				catch(Exception &e)
-				{
-
-				}
-			}
-		};
-		std::for_each(getForces().begin(), getForces().end(), deleteForce);
-	}
-	*/
-}
+{ }
 
 void Body::addForce(Force *force)
 {
