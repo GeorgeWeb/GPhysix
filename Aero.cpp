@@ -19,7 +19,7 @@ inline const glm::vec3 &Aero::apply(float mass, const glm::vec3 &pos, const glm:
 	glm::vec3 vSurf = (m_Triangle[0]->getVel() + m_Triangle[1]->getVel() + m_Triangle[2]->getVel()) / 3.0f;
 	glm::vec3 vAir = m_wind->getWind();
 	// v = vSurface - vAir
-	glm::vec3 v = vSurf - glm::vec3(3.0f, 6.0f, 0.0f);
+	glm::vec3 v = vSurf - vAir;
 
 	// cross product of the diference between the position vectors of the triangle
 	glm::vec3 crossTri = glm::cross((m_Triangle[1]->getPos() - m_Triangle[0]->getPos()), (m_Triangle[2]->getPos() - m_Triangle[0]->getPos()));

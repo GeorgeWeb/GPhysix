@@ -1,4 +1,7 @@
-#include "Simulation.hpp"
+#include "Simulation.h"
+
+// Std. Includes
+#include <random>
 
 using namespace GPhysix;
 
@@ -6,7 +9,7 @@ using namespace GPhysix;
 // Chain5, Chain10, Trampoline, Flag
 #define Trampoline
 
-static Simulation sim;
+static Simulation<Particle> sim;
 
 #ifdef Chain5
 constexpr size_t particleSize = 5;
@@ -43,29 +46,29 @@ Mesh boundingBox;
 void CreateHookForces(const float ks, const float kd, const float rest);
 void AddAerodynamicForce();
 void LinkHooksWithParticles();
-void UpdateChainOfFive(bool damp);
-void UpdateChainOfTen(bool damp, bool collision);
-void UpdateTrampoline(bool collision, bool friction);
-void UpdateFlag(bool collision, bool wind);
+void UpdateChainOfFive();
+void UpdateChainOfTen();
+void UpdateTrampoline();
+void UpdateFlag();
 /*** !HELPER FUNCTION PROTOTYPES ***/
 
 void Update()
 {
 #ifdef Chain5
 
-	UpdateChainOfFive(false); ///> TODO: Manipulate dampening based on bool param (Use enum instead of bool)
+	UpdateChainOfFive(); ///> TODO: Manipulate dampening based on bool param (Use enum instead of bool)
 
 #elif defined (Chain10)
 
-	UpdateChainOfTen(true, true); ///> TODO: Manipulate dampening & collision based on bool param (Use enum instead of bool)
+	UpdateChainOfTen(); ///> TODO: Manipulate dampening & collision based on bool param (Use enum instead of bool)
 
 #elif defined (Flag)
 
-	UpdateFlag(true, true); ///> TODO: Manipulate collision & wind based on bool params (Use enum instead of bool)
+	UpdateFlag(); ///> TODO: Manipulate collision & wind based on bool params (Use enum instead of bool)
 
 #elif defined (Trampoline)
 
-	UpdateTrampoline(true, true); ///> TODO: Manipulate collision & friction based on bool params (Use enum instead of bool)
+	UpdateTrampoline(); ///> TODO: Manipulate collision & friction based on bool params (Use enum instead of bool)
 
 #else
 	// TODO: Error it somehow
@@ -121,7 +124,7 @@ auto main(void) -> int
 	/*** FORCES **/
 	drag.setDrag(glm::vec3(1.25f, .5f, .5f));
 	aero.setAero(1.25f, 1.1f);
-	wind.setWind(glm::vec3(3.0f, 6.0f, 0.0f));
+	wind.setWind(glm::vec3(6.0f, 4.0f, 2.0f));
 
 	#if (defined Chain5) || (defined Chain10)
 	size_t partCount = 0;
@@ -150,7 +153,7 @@ auto main(void) -> int
 	#elif (defined Trampoline) || (defined Flag)
 	size_t partRowCount = 0;
 	size_t partColCount = 0;
-	float spanX = 1.0f;
+	float spanX = 3.0f;
 	float spanZ = 1.0f;
 	// Create 2d particles and add 2d hook forces to them
 	std::for_each(particles.begin(), particles.end(), [&](std::array<Particle, particleSize> &particleRows)
@@ -166,14 +169,14 @@ auto main(void) -> int
 			// add force values to particles (ignore the first one - stationary)
 			particle.addForce(&grav);
 			particle.addForce(&drag);
-			//particle.addForce(&wind);
+			particle.addForce(&wind);
 			// update 'x-pos' span
 			spanX++;
 			// update particle index counter
 			partColCount++;
 		});
-		spanZ--;
-		spanX = 1.0f;
+		spanZ -= 1.0f;
+		spanX = 3.0f;
 		partRowCount++;
 	});
 	#else	
@@ -184,12 +187,14 @@ auto main(void) -> int
 #ifdef Trampoline
 	ks = 9.0f; kd = 2.0f; rest = .5f;
 #elif defined (Flag)
-	ks = 13.0f; kd = 3.0f; rest = .5f;
+	ks = 25.0f; kd = 15.0f; rest = .5f;
 #elif defined (Chain10)
 	ks = 10.0f; kd = 20.0f; rest = .5f;
 #else
 	ks = 50.0f; kd = 0.0f; rest = 1.0f;
 #endif
+	
+	// Add Hook forces to particles
 	CreateHookForces(ks, kd, rest);
 	LinkHooksWithParticles();
 
@@ -270,30 +275,6 @@ void CreateHookForces(const float ks, const float kd, const float rest)
 	#else
 	// TODO: Error it somehow
 	return;
-	#endif
-}
-
-void AddAerodynamicForce()
-{
-	#ifdef Flag
-	// add wind force to the aerodynamic drag force
-	aero.addWind(&wind);
-	for (size_t row = 0; row < particleSize - 2; row++)
-	{
-		for (size_t col = 0; row < particleSize - 2; row++)
-		{
-			// First triangle
-			aero.setTriangle(&particles[row][col], &particles[row + 1][col], &particles[row][col + 1]);
-			particles[row][col].addForce(&aero);
-			particles[row + 1][col].addForce(&aero);
-			particles[row][col + 1].addForce(&aero);
-			// Second triangle
-			aero.setTriangle(&particles[row + 1][col + 1], &particles[row + 1][col], &particles[row][col + 1]);
-			particles[row + 1][col + 1].addForce(&aero);
-			particles[row + 1][col].addForce(&aero);
-			particles[row][col + 1].addForce(&aero);
-		}
-	}
 	#endif
 }
 
@@ -387,7 +368,31 @@ void LinkHooksWithParticles()
 	#endif
 }
 
-void UpdateChainOfFive(bool damp)
+void AddAerodynamicForce()
+{
+#ifdef Flag
+	// add wind force to the aerodynamic drag force
+	aero.addWind(&wind);
+	for (size_t row = 0; row < particleSize - 2; row++)
+	{
+		for (size_t col = 0; row < particleSize - 2; row++)
+		{
+			// First triangle
+			aero.setTriangle(&particles[row][col], &particles[row + 1][col], &particles[row][col + 1]);
+			particles[row][col].addForce(&aero);
+			particles[row + 1][col].addForce(&aero);
+			particles[row][col + 1].addForce(&aero);
+			// Second triangle
+			aero.setTriangle(&particles[row + 1][col + 1], &particles[row + 1][col], &particles[row][col + 1]);
+			particles[row + 1][col + 1].addForce(&aero);
+			particles[row + 1][col].addForce(&aero);
+			particles[row][col + 1].addForce(&aero);
+		}
+	}
+#endif
+}
+
+void UpdateChainOfFive()
 {
 	#ifdef Chain5
 	// apply forces to particles to calc. acceleration
@@ -395,22 +400,22 @@ void UpdateChainOfFive(bool damp)
 		particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel()));
 
 	// time-step & movement
-	while (sim.getAccumultor() >= sim.deltaTime)
+	while (sim.getAccumultor() >= Time::deltaTime)
 	{
 		for (int i = 1; i < particles.size(); i++)
 		{
 			// integrate Pos, Vel
-			sim.IntegrateSI(particles[i], sim.deltaTime);
+			sim.IntegrateSI(particles[i]);
 			// move particles
 			particles[i].move(particles[i].getVel(), particles[i].getPos());
 		}
 		// recalculate frames
-		sim.getAccumultor() -= sim.deltaTime;
+		sim.getAccumultor() -= Time::deltaTime;
 	}
 	#endif
 }
 
-void UpdateChainOfTen(bool damp, bool collision)
+void UpdateChainOfTen()
 {
 	#ifdef Chain10
 	// apply forces to particles to calc. acceleration
@@ -418,17 +423,17 @@ void UpdateChainOfTen(bool damp, bool collision)
 		particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel()));
 
 	// time-step & movement
-	while (sim.getAccumultor() >= sim.deltaTime)
+	while (sim.getAccumultor() >= Time::deltaTime)
 	{
 		for (int i = 1; i < particles.size() - 1; i++)
 		{
 			// integrate Pos, Vel
-			sim.IntegrateSI(particles[i], sim.deltaTime);
+			sim.IntegrateSI(particles[i]);
 			// move particles
 			particles[i].move(particles[i].getVel(), particles[i].getPos());
 		}
 		// recalculate frames
-		sim.getAccumultor() -= sim.deltaTime;
+		sim.getAccumultor() -= Time::deltaTime;
 	}
 
 	// Apply collision to particles - ignore the first(stationary) particle
@@ -436,7 +441,7 @@ void UpdateChainOfTen(bool damp, bool collision)
 	#endif
 }
 
-void UpdateTrampoline(bool collision, bool friction)
+void UpdateTrampoline()
 {
 	#ifdef Trampoline
 	// apply forces to particles to calc. acceleration
@@ -449,7 +454,7 @@ void UpdateTrampoline(bool collision, bool friction)
 	});
 
 	// time-step & movement
-	while (sim.getAccumultor() >= sim.deltaTime)
+	while (sim.getAccumultor() >= Time::deltaTime)
 	{
 		// apply forces to particles to calc. acceleration
 		std::for_each(particles.begin() + 1, particles.end() - 1, [&](std::array<Particle, particleSize> &particleRows)
@@ -457,13 +462,13 @@ void UpdateTrampoline(bool collision, bool friction)
 			std::for_each(particleRows.begin() + 1, particleRows.end() - 1, [&](Particle &particle)
 			{
 				// integrate Pos, Vel
-				sim.IntegrateSI(particle, sim.deltaTime);
+				sim.IntegrateSI(particle);
 				// move particles
 				particle.move(particle.getVel(), particle.getPos());
 			});
 		});
 		// recalculate frames
-		sim.getAccumultor() -= sim.deltaTime;
+		sim.getAccumultor() -= Time::deltaTime;
 	}
 	
 	// Apply collision to the non-static(non-velocity) particles
@@ -477,7 +482,7 @@ void UpdateTrampoline(bool collision, bool friction)
 #endif
 }
 
-void UpdateFlag(bool collision, bool wind)
+void UpdateFlag()
 {
 #ifdef Flag
 	// apply forces to particles to calc. acceleration
@@ -490,7 +495,7 @@ void UpdateFlag(bool collision, bool wind)
 	});
 
 	// time-step & movement
-	while (sim.getAccumultor() >= sim.deltaTime)
+	while (sim.getAccumultor() >= Time::deltaTime)
 	{
 		// apply forces to particles to calc. acceleration
 		std::for_each(particles.begin(), particles.end() , [&](std::array<Particle, particleSize> &particleRows)
@@ -498,13 +503,13 @@ void UpdateFlag(bool collision, bool wind)
 			std::for_each(particleRows.begin() + 1, particleRows.end(), [&](Particle &particle)
 			{
 				// integrate Pos, Vel
-				sim.IntegrateSI(particle, sim.deltaTime);
+				sim.IntegrateSI(particle);
 				// move particles
 				particle.move(particle.getVel(), particle.getPos());
 			});
 		});
 		// recalculate frames
-		sim.getAccumultor() -= sim.deltaTime;
+		sim.getAccumultor() -= Time::deltaTime;
 	}
 	// Apply collision to the non-static(non-velocity) particles
 	std::for_each(particles.begin(), particles.end(), [&](std::array<Particle, particleSize> &particleRows)

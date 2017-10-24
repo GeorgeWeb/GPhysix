@@ -10,8 +10,6 @@ namespace GPhysix
 	{
 		public:
 			Particle();
-			~Particle();
-			
-			void move(const glm::vec3 &newVel, const glm::vec3 &newPos);
+			~Particle() { };
 	};
 }

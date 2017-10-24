@@ -3,12 +3,6 @@
 
 using namespace GPhysix;
 
-Body::Body()
-{ }
-
-Body::~Body()
-{ }
-
 void Body::addForce(Force *force)
 {
 	m_forces.push_back(force);
@@ -39,4 +33,10 @@ void Body::rotate(const float &angle, const glm::vec3 &vect)
 void Body::scale(const glm::vec3 &vect)
 {
 	m_mesh.scale(vect);
+}
+
+void Body::move(const glm::vec3 &newVel, const glm::vec3 &newPos)
+{
+	setVel(newVel);
+	setPos(newPos);
 }
