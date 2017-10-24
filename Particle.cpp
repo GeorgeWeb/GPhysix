@@ -16,14 +16,3 @@ Particle::Particle() : Body()
 	setMass(1.0f);
 	setCor(1.0f);
 }
-
-Particle::~Particle()
-{
-
-}
-
-void Particle::move(const glm::vec3 &newVel, const glm::vec3 &newPos)
-{
-	setVel(newVel);
-	setPos(newPos);
-}

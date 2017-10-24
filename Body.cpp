@@ -3,34 +3,6 @@
 
 using namespace GPhysix;
 
-Body::Body()
-{ }
-
-Body::~Body()
-{
-	/*
-	if (!getForces().empty())
-	{
-		auto deleteForce = [](auto *force)
-		{
-			if (force != nullptr)
-			{
-				try
-				{
-					delete force;
-					force = nullptr;
-				}
-				catch(Exception &e)
-				{
-
-				}
-			}
-		};
-		std::for_each(getForces().begin(), getForces().end(), deleteForce);
-	}
-	*/
-}
-
 void Body::addForce(Force *force)
 {
 	m_forces.push_back(force);
@@ -61,4 +33,10 @@ void Body::rotate(const float &angle, const glm::vec3 &vect)
 void Body::scale(const glm::vec3 &vect)
 {
 	m_mesh.scale(vect);
+}
+
+void Body::move(const glm::vec3 &newVel, const glm::vec3 &newPos)
+{
+	setVel(newVel);
+	setPos(newPos);
 }

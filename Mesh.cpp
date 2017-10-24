@@ -1,17 +1,15 @@
 #include "Mesh.h"
 #include <errno.h>
+#include <algorithm>
 
 using namespace GPhysix;
-
-/*
-**	MESH 
-*/
 
 // default constructor creates a horizontal plane or dimensions 1 x 1 centered on the origin
 Mesh::Mesh()
 {
 	// Create vertices
-	Vertex vertices[] = { 
+	std::array<Vertex, 6> vertices
+	{
 		Vertex(glm::vec3(-0.5f ,0.0f ,-0.5f)),
 		Vertex(glm::vec3(0.5f, 0.0f, -0.5f)),
 		Vertex(glm::vec3(-0.5f ,0.0f ,0.5f)),
@@ -21,7 +19,7 @@ Mesh::Mesh()
 	};
 
 	//create mesh
-	initMesh(vertices, sizeof(vertices) / sizeof(vertices[0]));
+	initMesh((Vertex*)&vertices, vertices.size());
 
 	// initialise tansform matrices (identify)
 	initTransform();
@@ -34,17 +32,87 @@ Mesh::Mesh(const std::string& fileName)
 	initTransform();
 }
 
-Mesh::~Mesh()
+Mesh::Mesh(MeshType type)
 {
+	std::array<Vertex, 36> vertices;
+	switch (type)
+	{
+	case TRIANGLE:
+		// Create triangle
+		vertices[0] = Vertex(glm::vec3(-1.0, -1.0, 0.0));
+		vertices[1] = Vertex(glm::vec3(0, 1.0, 0.0));
+		vertices[2] = Vertex(glm::vec3(1.0, -1.0, 0.0));
+		break;
+
+	case QUAD:
+		// create quad
+		vertices[0] = Vertex(glm::vec3(-1.0f, 0.0f, -1.0f));
+		vertices[1] = Vertex(glm::vec3(1.0f, 0.0f, -1.0f));
+		vertices[2] = Vertex(glm::vec3(-1.0f, 0.0f, 1.0f));
+		vertices[3] = Vertex(glm::vec3(1.0f, 0.0f, -1.0f));
+		vertices[4] = Vertex(glm::vec3(-1.0f, 0.0f, 1.0f));
+		vertices[5] = Vertex(glm::vec3(1.0f, 0.0f, 1.0f));
+		break;
+
+	case CUBE:
+		// create cube
+		vertices[0] = Vertex(glm::vec3(-1.0f, -1.0f, -1.0f));
+		vertices[1] = Vertex(glm::vec3(1.0f, -1.0f, -1.0f));
+		vertices[2] = Vertex(glm::vec3(1.0f, 1.0f, -1.0f));
+		vertices[3] = Vertex(glm::vec3(-1.0f, -1.0f, -1.0f));
+		vertices[4] = Vertex(glm::vec3(1.0f, 1.0f, -1.0f));
+		vertices[5] = Vertex(glm::vec3(-1.0f, 1.0f, -1.0f));
+		vertices[6] = Vertex(glm::vec3(-1.0f, -1.0f, 1.0f));
+		vertices[7] = Vertex(glm::vec3(1.0f, -1.0f, 1.0f));
+		vertices[8] = Vertex(glm::vec3(1.0f, 1.0f, 1.0f));
+		vertices[9] = Vertex(glm::vec3(-1.0f, -1.0f, 1.0f));
+		vertices[10] = Vertex(glm::vec3(1.0f, 1.0f, 1.0f));
+		vertices[11] = Vertex(glm::vec3(-1.0f, 1.0f, 1.0f));
+		vertices[12] = Vertex(glm::vec3(-1.0f, -1.0f, -1.0f));
+		vertices[13] = Vertex(glm::vec3(1.0f, -1.0f, -1.0f));
+		vertices[14] = Vertex(glm::vec3(1.0f, -1.0f, 1.0f));
+		vertices[15] = Vertex(glm::vec3(-1.0f, -1.0f, -1.0f));
+		vertices[16] = Vertex(glm::vec3(1.0f, -1.0f, 1.0f));
+		vertices[17] = Vertex(glm::vec3(-1.0f, -1.0f, 1.0f));
+		vertices[18] = Vertex(glm::vec3(-1.0f, 1.0f, -1.0f));
+		vertices[19] = Vertex(glm::vec3(1.0f, 1.0f, -1.0f));
+		vertices[20] = Vertex(glm::vec3(1.0f, 1.0f, 1.0f));
+		vertices[21] = Vertex(glm::vec3(-1.0f, 1.0f, -1.0f));
+		vertices[22] = Vertex(glm::vec3(1.0f, 1.0f, 1.0f));
+		vertices[23] = Vertex(glm::vec3(-1.0f, 1.0f, 1.0f));
+		vertices[24] = Vertex(glm::vec3(-1.0f, -1.0f, -1.0f));
+		vertices[25] = Vertex(glm::vec3(-1.0f, 1.0f, -1.0f));
+		vertices[26] = Vertex(glm::vec3(-1.0f, 1.0f, 1.0f));
+		vertices[27] = Vertex(glm::vec3(-1.0f, -1.0f, -1.0f));
+		vertices[28] = Vertex(glm::vec3(-1.0f, 1.0f, 1.0f));
+		vertices[29] = Vertex(glm::vec3(-1.0f, -1.0f, 1.0f));
+		vertices[30] = Vertex(glm::vec3(1.0f, -1.0f, -1.0f));
+		vertices[31] = Vertex(glm::vec3(1.0f, 1.0f, -1.0f));
+		vertices[32] = Vertex(glm::vec3(1.0f, 1.0f, 1.0f));
+		vertices[33] = Vertex(glm::vec3(1.0f, -1.0f, -1.0f));
+		vertices[34] = Vertex(glm::vec3(1.0f, 1.0f, 1.0f));
+		vertices[35] = Vertex(glm::vec3(1.0f, -1.0f, 1.0f));
+		break;
+	}
+	
+
+	/* 
+	 * generate unique vertex vector
+	*/
+	// uniqueness check between the Vertices' glm::vec3 coordinates
+	auto uniqueCheck = [](Vertex& lhs, Vertex& rhs) { return !(lhs.getCoord() == rhs.getCoord()); };
+	// copy only the unique values from the vertices array to the class's vertices vector
+	std::unique_copy(vertices.begin(), vertices.end(), std::back_inserter(m_vertices), uniqueCheck);
+
+	// create mesh
+	initMesh((Vertex*)&vertices, vertices.size());
+	// create model matrix ( identity )
+	initTransform();
 }
 
-
-/* 
-** INIT METHODS 
-*/
-
 // initialise transform matrices to identity
-void Mesh::initTransform() {
+void Mesh::initTransform()
+{
 	m_translate = glm::mat4(1.0f);
 	m_rotate = glm::mat4(1.0f);
 	m_scale = glm::mat4(1.0f);
@@ -63,7 +131,6 @@ void Mesh::initMesh(Vertex* vertices, unsigned int numVertices) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindVertexArray(0);
 }
-
 
 // create mesh from model (typically loaded from file)
 void Mesh::InitMesh(const IndexedModel& model)
@@ -97,15 +164,15 @@ void Mesh::InitMesh(const IndexedModel& model)
 }
 
 // load .obj file
-void Mesh::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices, std::vector <glm::vec2> &out_uvs, std::vector <glm::vec3> &out_normals
-)
+void Mesh::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices, 
+			std::vector <glm::vec2> &out_uvs, std::vector <glm::vec3> &out_normals)
 {
-	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
-	std::vector< glm::vec3 > temp_vertices;
-	std::vector< glm::vec2 > temp_uvs;
-	std::vector< glm::vec3 > temp_normals;
+	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+	std::vector<glm::vec3> temp_vertices;
+	std::vector<glm::vec2> temp_uvs;
+	std::vector<glm::vec3> temp_normals;
 
-	FILE * stream;
+	FILE* stream;
 	errno_t err;
 
 	err = fopen_s(&stream, path, "r");
@@ -168,24 +235,3 @@ void Mesh::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices, std::
 	}
 
 }
-
-/*
-** TRANSFORMATION METHODS
-*/
-
-// translate
-void Mesh::translate(const glm::vec3 &vect) {
-	m_translate = glm::translate(m_translate, vect);
-}
-
-// rotate
-void Mesh::rotate(const float &angle, const glm::vec3 &vect) {
-	m_rotate = glm::rotate(m_rotate, angle, vect);
-}
-
-// scale
-void Mesh::scale(const glm::vec3 &vect) {
-	m_scale = glm::scale(m_scale, vect);
-}
-
-

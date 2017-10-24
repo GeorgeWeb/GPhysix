@@ -21,8 +21,8 @@ namespace GPhysix
 
 			std::vector<Force*> m_forces;
 		public:
-			Body();
-			~Body();
+			Body() { }
+			~Body() { };
 
 			/*
 			** GET METHODS
@@ -66,5 +66,7 @@ namespace GPhysix
 			void translate(const glm::vec3 &vect);
 			void rotate(const float &angle, const glm::vec3 &vect);
 			void scale(const glm::vec3 &vect);
+			// can be possibly eventually overriden if a more specific behaviour is required
+			virtual void move(const glm::vec3 &newVel, const glm::vec3 &newPos);
 	};
 }
