@@ -5,7 +5,6 @@
 
 #include <string>
 #include <vector>
-#include <array>
 
 namespace GPhysix
 {
@@ -15,7 +14,18 @@ namespace GPhysix
 			Vertex() : m_coord(glm::vec3()) {}
 			Vertex(const glm::vec3& coord) : m_coord(coord) {}
 			
-			const glm::vec3& getCoord() { return m_coord; }
+			inline glm::vec3& getCoord() { return m_coord; }
+			
+			inline friend bool operator==(Vertex& t_lhs, Vertex& t_rhs);
+			inline friend bool operator!=(Vertex& t_lhs, Vertex& t_rhs) { return !(t_lhs == t_rhs); }
+			
+			inline bool operator<(const Vertex& other) const
+			{
+				return m_coord.x != other.m_coord.x ? m_coord.x < other.m_coord.x
+					 : m_coord.y != other.m_coord.y ? m_coord.y < other.m_coord.y
+					 : m_coord.z < other.m_coord.z;
+			}
+
 		private:
 			glm::vec3 m_coord;
 	};
@@ -53,6 +63,8 @@ namespace GPhysix
 			glm::mat4 getTranslate() const { return m_translate; }
 			glm::mat4 getRotate() const { return m_rotate; }
 			glm::mat4 getScale() const { return m_scale; }
+			glm::vec3 getScaleVec() const { return glm::vec3(m_scale[0].x, m_scale[1].y, m_scale[2].z); }
+
 			Shader getShader() const { return m_shader; }
 			GLuint getVertexArrayObject() const { return m_vertexArrayObject; }
 			unsigned int getNumIndices() const { return m_numIndices; }
@@ -83,6 +95,8 @@ namespace GPhysix
 			inline void translate(const glm::vec3& vect) { m_translate = glm::translate(m_translate, vect); }
 			// rotate mesh by a vector
 			inline void rotate(const float& angle, const glm::vec3& vect) { m_rotate = glm::rotate(m_rotate, angle, vect); }
+			// rotate mesh by mat4
+			inline void setRotateMat4(const glm::mat4& tmat4) { m_rotate = tmat4; }
 			// scale mesh by a vector
 			inline void scale(const glm::vec3& vect) { m_scale = glm::scale(m_scale, vect); }
 

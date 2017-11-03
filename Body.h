@@ -6,15 +6,13 @@ namespace GPhysix
 {
 	class Body
 	{
-		private:
-			/*
-			** OTHER METHODS
-			*/
+		protected:
 			Mesh m_mesh; ///> mesh used to represent the body
 		
 			float m_mass; ///> mass
 			float m_cor; ///> coefficient of restitution
 		
+		private:
 			glm::vec3 m_acc; ///> acceleration
 			glm::vec3 m_vel; ///> velocity
 			glm::vec3 m_pos; ///> position
@@ -57,16 +55,17 @@ namespace GPhysix
 			void setVel(const int &i, const float &v) { m_vel[i] = v; } ///> set the ith coordinate of the velocity vector
 			void setPos(const glm::vec3 &vect) { m_pos = vect; m_mesh.setPos(vect); }
 			void setPos(const int &i, const float &p) { m_pos[i] = p; m_mesh.setPos(i, p); } ///> set the ith coordinate the position vector
-		
+			
 			// physical properties
 			void setCor(float cor) { m_cor = cor; }
 			void setMass(float mass) { m_mass = mass; }
 
 			// transformation methods
-			void translate(const glm::vec3 &vect);
-			void rotate(const float &angle, const glm::vec3 &vect);
-			void scale(const glm::vec3 &vect);
-			// can be possibly eventually overriden if a more specific behaviour is required
-			virtual void move(const glm::vec3 &newVel, const glm::vec3 &newPos);
+			void translate(const glm::vec3& vect);
+			void rotate(const float& angle, const glm::vec3& vect);
+			void scale(const glm::vec3& vect);
+			
+			void integrate(const float deltaTime);
+			virtual void move();
 	};
 }

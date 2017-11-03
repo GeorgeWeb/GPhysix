@@ -9,14 +9,7 @@ Simulation<RigidBody>::Simulation() :
 {
 	// initialize application
 	m_app.initRender();
-	Application::camera.setCameraPosition(glm::vec3(0.0f, 5.0f, 10.0f));
-}
-
-void Simulation<RigidBody>::Integrate(RigidBody& rigBody)
-{
-	rigBody.getVel() += rigBody.getAcc() * Time::deltaTime;
-	rigBody.getPos() += rigBody.getVel() * Time::deltaTime;
-	
+	Application::camera.setCameraPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 }
 
 void Simulation<RigidBody>::Exit()

@@ -1,6 +1,16 @@
 #include "Mesh.h"
 #include <errno.h>
+
+#include <array>
 #include <algorithm>
+#include <set>
+
+bool GPhysix::operator==(Vertex& t_lhs, Vertex& t_rhs)
+{
+	return t_lhs.getCoord().x == t_rhs.getCoord().x
+		&& t_lhs.getCoord().y == t_rhs.getCoord().y
+		&& t_lhs.getCoord().z == t_rhs.getCoord().z;
+}
 
 using namespace GPhysix;
 
@@ -99,10 +109,8 @@ Mesh::Mesh(MeshType type)
 	/* 
 	 * generate unique vertex vector
 	*/
-	// uniqueness check between the Vertices' glm::vec3 coordinates
-	auto uniqueCheck = [](Vertex& lhs, Vertex& rhs) { return !(lhs.getCoord() == rhs.getCoord()); };
-	// copy only the unique values from the vertices array to the class's vertices vector
-	std::unique_copy(vertices.begin(), vertices.end(), std::back_inserter(m_vertices), uniqueCheck);
+	std::set<Vertex> uniqueVertices = std::set<Vertex>(vertices.begin(), vertices.end());
+	m_vertices = std::vector<Vertex>(uniqueVertices.begin(), uniqueVertices.end());
 
 	// create mesh
 	initMesh((Vertex*)&vertices, vertices.size());
