@@ -31,91 +31,81 @@ glm::vec3 toWorld(glm::vec3 vect, const glm::mat4& model)
 // ----------------------------- //
 // HELPER FUNCTIONS DECLARATIONS //
 // ----------------------------- //
-void handleStaticCollision(RigidBody* rb, Vertex& collisionPoint, float e, bool applyFriction = false);
-std::vector<Vertex> detectCollisionWithPlane(RigidBody* rb, const glm::vec3& plane);
+void handleStaticCollision(RigidBody* rb, Vertex collisionPoint, float e, bool applyFriction = false);
+std::vector<Vertex> detectCollisionWithPlane(RigidBody* rb, glm::vec3 plane);
 Vertex calcCollisionPoint(std::vector<Vertex> collidingVertices, RigidBody* rb);
 void applyImpulse(RigidBody* rb, glm::vec3& J, glm::vec3& appPoint, double duration = 0);
 // TODO: add applyFriction function
 
-void Update(const std::vector<RigidBody*>& rigidBodies, const glm::vec3& plane, const glm::vec3& boundary)
+void Update(const std::vector<RigidBody*>& rigidBodies, glm::vec3 plane)
 {
 	// time-step and movement
 	while (sim->getAccumultor() >= Time::deltaTime)
 	{
-		for (auto rb : rigidBodies)
+		auto& rb = rigidBodies[0];
+
+		// calculate acceleration based on forces
+		#ifndef TASK1
+		rb->setAcc(rb->applyForces(rb->getPos(), rb->getVel()));
+		#endif
+
+		// Integrate position, velocity
+		rb->integrate(Time::deltaTime);
+
+		// Inegrate rotation
+		rb->setAngVel(rb->getAngVel() + Time::deltaTime * rb->getAngAcc());
+		glm::mat3 angVelSkew = glm::matrixCross3(rb->getAngVel());
+		glm::mat3 R = glm::mat3(rb->getRotate());
+		R += Time::deltaTime * angVelSkew * R;
+		R = glm::orthonormalize(R);
+		rb->setRotate(glm::mat4(R));
+
+		#ifdef TASK1
+		const auto J = glm::vec3(-4.0f, 0.0f, 0.0f);
+		auto applicationPoint = glm::vec3(rb->getPos() - glm::vec3(1.0f, 1.0f, 0.0f));
+		applyImpulse(rb, J, applicationPoint, 2.0f);
+		#else
+		// ------------------ //
+		// Collison detection //
+		// ------------------ //
+		auto collidingVertices = detectCollisionWithPlane(rb, plane);
+		bool hasCollision = (collidingVertices.size() > 0);
+
+		if (hasCollision)
 		{
-			// calculate acceleration based on forces
-			#ifndef TASK1
-			rb->setAcc(rb->applyForces(rb->getPos(), rb->getVel()));
-			#endif
-
-			// Integrate position, velocity
-			rb->integrate(Time::deltaTime);
-			
-			// move the rigid body by its velocity
-			rb->move();
-
-			// Inegrate rotation
-			rb->setAngVel(rb->getAngVel() + Time::deltaTime * rb->getAngAcc());
-			auto angVelSkew = glm::matrixCross3(rb->getAngVel());
-			auto R = glm::mat3(rb->getRotate());
-			R += Time::deltaTime * angVelSkew * R;
-			R = glm::orthonormalize(R);
-			rb->setRotate(glm::mat4(R));
-
-			#ifdef TASK1
-			auto j = glm::vec3(-4.0f, 0.0f, 0.0f);
-			auto applicationPoint = glm::vec3(rb->getPos() - glm::vec3(1.0f, 1.0f, 0.0f));
-			applyImpulse(rb, j, applicationPoint, 2.0f);
-			#else
-			// ------------------ //
-			// Collison detection //
-			// ------------------ //
-			auto collidingVertices = detectCollisionWithPlane(rb, plane);
-			bool hasCollision = collidingVertices.size() > 0;
-
-			// if collision is detected canRespond will be set true and can be used to check for collision
-			if (hasCollision)
+			// translate up on y axis by the lowest vertex on the y axis
+			Vertex lowestVertex = collidingVertices[0].getCoord();
+			for (Vertex vert : collidingVertices)
 			{
-				// check if the rigid body is in the boundaries
-				if (rb->getPos().x < (0.5f * boundary.x + 2.5f) && rb->getPos().x > -(0.5f * boundary.x + 2.5f)
-					&& rb->getPos().z < (0.5f * boundary.z + 2.5f) && rb->getPos().z > -(0.5f * boundary.z + 2.5f))
+				if (vert.getCoord().y < lowestVertex.getCoord().y)
+					lowestVertex = vert;
+			}
+
+			// hacky 'empirical' fix for position
+			glm::vec3 displacement = glm::vec3(0.0f);
+			displacement.y = glm::abs(lowestVertex.getCoord().y);
+			rb->translate(/*Time::deltaTime * */displacement);
+
+			// get average point of collision from the colliding vertices
+			Vertex collisionPoint = calcCollisionPoint(collidingVertices, rb);
+
+			// handle the collision on response
+			handleStaticCollision(rb, collisionPoint, 0.7f, true);
+
+			#ifdef TASK2
+			if (!isCollisionStatPrinted)
+			{
+				for (Vertex vert : collidingVertices)
 				{
-					// Hacky fix of position
-					auto lowestVertex = collidingVertices[0];
-					for (auto vert : collidingVertices)
-					{
-						if (vert.getCoord().y < lowestVertex.getCoord().y)
-						{
-							lowestVertex = vert;
-						}
-					}
-
-					glm::vec3 displacement = glm::vec3(0.0f);
-					displacement.y = glm::abs(lowestVertex.getCoord().y);
-					rb->translate(displacement);
-
-					Vertex collisionPoint = calcCollisionPoint(collidingVertices, rb);
-					// handle the collision on response
-					handleStaticCollision(rb, collisionPoint, 0.7f, true);
-
-					#ifdef TASK2
-					if (!isCollisionStatPrinted)
-					{
-						for (Vertex vert : collidingVertices)
-						{
-							std::cout << "Collision detected in: " << glm::to_string(vert.getCoord()) << std::endl;
-						}
-						std::cout << "\nApplied collision impulse in: " << glm::to_string(collisionPoint.getCoord()) << std::endl << std::endl;
-
-						isCollisionStatPrinted = true;
-					}
-					#endif
+					std::cout << "Collision detected in: " << glm::to_string(vert.getCoord()) << std::endl;
 				}
+				std::cout << "\nApplied collision impulse in: " << glm::to_string(collisionPoint.getCoord()) << std::endl << std::endl;
+
+				isCollisionStatPrinted = true;
 			}
 			#endif
-
 		}
+		#endif
 
 		// reset frames accumulator
 		sim->getAccumultor() -= Time::deltaTime;
@@ -133,7 +123,7 @@ auto main(void) -> int
 
 	// create ground plane
 	Mesh plane;
-	plane.scale(glm::vec3(50.0f, 1.0f, 50.0f));
+	plane.scale(glm::vec3(100.0f, 0.0f, 100.0f));
 	plane.setShader(Shader("resources/shaders/core.vert", "resources/shaders/core.frag"));
 	
 	// create rigid body cube from mesh
@@ -142,23 +132,20 @@ auto main(void) -> int
 	cube.setMass(2.0f);
 	cube.scale(glm::vec3(1.0f, 3.0f, 1.0f));
 	cube.translate(glm::vec3(0.0f, 10.0f, 0.0f));
-	cube.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	cube.setAngVel(glm::vec3(0.0f, 0.0f, 0.5f));
+	cube.setVel(glm::vec3(3.0f, 0.0f, 0.0f));
+	cube.setAngVel(glm::vec3(0.1f, 0.1f, 0.1f));
 
 	// Create forces
 	Gravity g;
 	// add forces to the cube rigid body
 	cube.addForce(&g);
 
-	// create a global var to store the point of collision between the cube and the plane
-	glm::vec3 collisionPoint = glm::vec3(0.0f);
-
 	// game loop
 	while (sim->IsRunning())
 	{
 		sim->BeginFrames();
 		
-		Update({ &cube }, plane.getPos(), plane.getScaleVec());
+		Update({ &cube }, plane.getPos());
 		Render({ plane, cube.getMesh() });
 
 		sim->EndFrames();
@@ -173,57 +160,41 @@ auto main(void) -> int
 // ---------------------------- //
 // HELPER FUNCTIONS DEFINITIONS //
 // ---------------------------- //
-void handleStaticCollision(RigidBody* rb, Vertex& collisionPoint, float e, bool applyFriction)
+void handleStaticCollision(RigidBody* rb, Vertex collisionPoint, float e, bool applyFriction)
 {
-	auto n = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
-	auto r = collisionPoint.getCoord() - rb->getPos();
-	auto rVel = rb->getVel() + glm::cross(rb->getAngVel(), r);
-	auto jCollision = glm::vec3(0.0f);
-	auto num = -(1.0f + e) * rVel * n;
-	auto denom = glm::pow(rb->getMass(), -1) + (n * glm::cross(rb->getInvInertia() * glm::cross(r, n), r));
-	jCollision = num / denom;
+	glm::vec3 r = collisionPoint.getCoord() - rb->getPos();
+	glm::vec3 vr = rb->getVel() + glm::cross(rb->getAngVel(), r);
+	glm::vec3 n = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::vec3 jCollision = (-(1 + e) * vr * n) / (pow(rb->getMass(), -1) + n * glm::cross((rb->getInvInertia() * (glm::cross(r, n))), r));
 
-	// apply collision impulse
-	applyImpulse(rb, jCollision, r);
-	
-	// applyFriction = false; // Debug
+	// apply collision
+	applyImpulse(rb, jCollision, r + rb->getPos());
+
 	if (applyFriction)
 	{
-		/*
-		// coeff. of friction
-		float u = 0.25f;
-		// glm::vec3 t = glm::orthonormalize(relVel, n);
-		// jt from gregory's lecture:
-		//float jt = jCollision.x * n.x + jCollision.y * n.y + jCollision
-		glm::vec3 tangent = r - n * glm::dot(r, n);
-		tangent = glm::normalize(tangent);
-
-		glm::vec3 jFriction;
-		if (abs(jt) < glm::length(jCollision) * u)
-			jFriction = jt * rV;
-		else
-			jFriction = -jt * rV * u;
-
-		std::cout << glm::to_string(relVel) << std::endl;
-
-		// apply friction impulse
-		applyImpulse(rb, -jFriction, r);
-		*/
+		glm::vec3 vt = vr - glm::dot(vr, n) * n;
+		constexpr float mu = 0.06f;
+		glm::vec3 jFriction = -mu * glm::length(jCollision) * glm::normalize(vt);
+		
+		if (glm::length(jCollision) > 0.0f)
+		{
+			// apply friction
+			applyImpulse(rb, jFriction, r + rb->getPos());
+		}
 	}
 }
 
-std::vector<Vertex> detectCollisionWithPlane(RigidBody* rb, const glm::vec3& plane)
+std::vector<Vertex> detectCollisionWithPlane(RigidBody* rb, glm::vec3 plane)
 {
 	std::vector<Vertex> collidingVertices;
 
-	for (auto vert : rb->getMesh().getVertices())
+	// Check if it collides with plane
+	for (Vertex vert : rb->getMesh().getVertices())
 	{
-		auto vert2World = glm::mat3(rb->getMesh().getModel()) * vert.getCoord() + rb->getPos();
-
-		// Check if a point colides
-		if (vert2World.y < plane.y)
+		glm::vec3 edge = glm::mat3(rb->getMesh().getModel()) * vert.getCoord() + rb->getPos();
+		if (edge.y < plane.y)
 		{
-			collidingVertices.push_back(vert2World);
+			collidingVertices.push_back(edge);
 		}
 	}
 
@@ -232,7 +203,7 @@ std::vector<Vertex> detectCollisionWithPlane(RigidBody* rb, const glm::vec3& pla
 
 Vertex calcCollisionPoint(std::vector<Vertex> collidingVertices, RigidBody* rb)
 {
-	auto verticesSum = glm::vec3(0.0f);
+	glm::vec3 verticesSum = glm::vec3(0.0f);
 	for (auto ver : collidingVertices)
 	{
 		verticesSum += ver.getCoord();

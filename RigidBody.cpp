@@ -25,5 +25,5 @@ void RigidBody::updateInvInertia()
 	inertia[1][1] = m_mass / 12.0f * (w * w + d * d);
 	inertia[2][2] = m_mass / 12.0f * (w * w + h * h);
 
-	setInvInertia(glm::inverse(inertia));
+	m_invInertia = glm::inverse(inertia);
 }
