@@ -39,10 +39,10 @@ void handleCollisions(const std::vector<RigidBody*>& rigidBodies)
 		canRespondStatic = collisionData.getHasIntersection();
 		if (canRespondStatic)
 		{
-			std::cout << "A static collision was detected.\n";
+			//std::cout << "A static collision was detected.\n";
 			rb->setVel(glm::vec3(0.0f));
 			rb->setAngVel(glm::vec3(0.0f));
-			rb->getPos().y = 1.0f;
+			rb->getPos().y = 0.0f;
 		}
 	}
 
@@ -59,7 +59,7 @@ void handleCollisions(const std::vector<RigidBody*>& rigidBodies)
 			canRespondDynamic = collisionData.getHasIntersection();
 			if (canRespondDynamic)
 			{
-				std::cout << "A dynamic collision was detected.\n";
+				//std::cout << "A dynamic collision was detected.\n";
 				rb1->setVel(-1.0f * rb1->getVel());
 				rb2->setVel(-1.0f * rb2->getVel());
 				rb1->setAngVel(-1.0f * rb1->getAngVel());
@@ -111,55 +111,82 @@ int main()
 	Mesh sphereMesh = Mesh::Mesh("resources/models/sphere1.obj");
 
 	// create environment
-	Mesh plane = cubeMesh;
+	Mesh plane = quadMesh;
 	plane.scale(glm::vec3(50.f, 1.0f, 50.f));
 	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/transp.frag"));
 	
 	// rigid body set up
 	// BODY 1
-	RigidBody cube1 = RigidBody();
-	cube1.setMesh(sphereMesh);
-	cube1.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
-	cube1.setMass(1.0f);
-	cube1.translate(glm::vec3(-10.0f, 5.0f, 0.0f));
-	cube1.setVel(glm::vec3(0.5f, 0.0f, 0.0f));
-	cube1.setAngVel(glm::vec3(0.0f, 0.0f, -0.5f));
-	cube1.addCollider(TYPE::SPHERE);
+	RigidBody rb1 = RigidBody();
+	rb1.setMesh(sphereMesh);
+	rb1.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+	rb1.setMass(1.0f);
+	rb1.translate(glm::vec3(-10.0f, 5.0f, 0.0f));
+	rb1.setVel(glm::vec3(0.5f, 0.0f, 0.0f));
+	rb1.setAngVel(glm::vec3(0.0f, 0.0f, -0.5f));
+	rb1.addCollider(TYPE::SPHERE);
 	// add forces to Rigid body
-	cube1.addForce(&g);
+	//rb1.addForce(&g);
 	
 	// BODY 2
-	RigidBody cube2 = RigidBody();
-	cube2.setMesh(cubeMesh);
-	cube2.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
-	cube2.setMass(1.0f);
-	cube2.translate(glm::vec3(10.0f, 5.0f, 0.0f));
-	cube2.setVel(glm::vec3(-0.5f, 0.0f, 0.0f));
-	//cube2.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	cube2.setAngVel(glm::vec3(0.2f, 0.0f, 0.3f));
-	cube2.addCollider(TYPE::OBB);
+	RigidBody rb2 = RigidBody();
+	rb2.setMesh(cubeMesh);
+	rb2.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+	rb2.setMass(1.0f);
+	rb2.translate(glm::vec3(10.0f, 5.0f, 0.0f));
+	rb2.setVel(glm::vec3(-0.5f, 0.0f, 0.0f));
+	//rb2.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb2.setAngVel(glm::vec3(0.2f, 0.0f, 0.3f));
+	rb2.addCollider(TYPE::OBB);
 	// add forces to Rigid body
-	cube2.addForce(&g);
+	//rb2.addForce(&g);
 
 	// BODY 3
-	RigidBody cube3 = RigidBody();
-	cube3.setMesh(cubeMesh);
-	cube3.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
-	cube3.setMass(1.0f);
-	cube3.translate(glm::vec3(0.0f, 3.0f, 0.0f));
-	cube3.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	cube3.setAngVel(glm::vec3(0.1f, 0.2f, 0.3f));
-	cube3.addCollider(TYPE::OBB);
+	RigidBody rb3 = RigidBody();
+	rb3.setMesh(cubeMesh);
+	rb3.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+	rb3.setMass(1.0f);
+	rb3.translate(glm::vec3(0.0f, 4.0f, 0.0f));
+	rb3.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	//rb3.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb3.setAngVel(glm::vec3(0.1f, 0.2f, 0.3f));
+	rb3.addCollider(TYPE::OBB);
 	// add forces to Rigid body
-	cube3.addForce(&g);
+	//rb3.addForce(&g);
+
+	// BODY 3
+	RigidBody rb4 = RigidBody();
+	rb4.setMesh(cubeMesh);
+	rb4.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+	rb4.setMass(1.0f);
+	rb4.translate(glm::vec3(0.0f, 4.0f, -10.0f));
+	rb4.setVel(glm::vec3(0.0f, 0.0f, 0.5f));
+	//rb4.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb4.setAngVel(glm::vec3(0.1f, 0.2f, 0.3f));
+	rb4.addCollider(TYPE::OBB);
+	// add forces to Rigid body
+	//rb4.addForce(&g);
+
+	// BODY 3
+	RigidBody rb5 = RigidBody();
+	rb5.setMesh(cubeMesh);
+	rb5.getMesh().setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+	rb5.setMass(1.0f);
+	rb5.translate(glm::vec3(0.0f, 4.0f, 10.0f));
+	rb5.setVel(glm::vec3(0.0f, 0.0f, -0.5f));
+	//rb5.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb5.setAngVel(glm::vec3(0.1f, 0.2f, 0.3f));
+	rb5.addCollider(TYPE::OBB);
+	// add forces to Rigid body
+	//rb5.addForce(&g);
 	
 	// game loop
 	while (sim->IsRunning())
 	{
 		sim->BeginFrames();
 
-		Update({ &cube1, &cube2, &cube3 }, plane.getPos());
-		Render({ plane, cube1.getMesh(), cube2.getMesh(), cube3.getMesh() });
+		Update({ &rb1, &rb2, &rb3, &rb4, &rb5 }, plane.getPos());
+		Render({ plane, rb1.getMesh(), rb2.getMesh(), rb3.getMesh(), rb4.getMesh(), rb5.getMesh() });
 
 		sim->EndFrames();
 	}

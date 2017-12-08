@@ -23,7 +23,6 @@ namespace GPhysix
 		SPHERE,
 		AABB,
 		OBB,
-		PLANE,
 	};
 
 	class Collider

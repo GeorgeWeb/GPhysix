@@ -30,13 +30,13 @@ void RigidBody::updateInvInertia()
 
 IntersectData RigidBody::canCollideStatic()
 {
-	if (m_collider.getType() == TYPE::OBB)
-	{
-		return m_collider.intersect(getOrientedBoxCollider(), getPlaneCollider());
-	}
-	else if (m_collider.getType() == TYPE::AABB)
+	if (m_collider.getType() == TYPE::AABB)
 	{
 		return m_collider.intersect(getAxisAlignedBoxCollider(), getPlaneCollider());
+	}
+	else if (m_collider.getType() == TYPE::OBB)
+	{
+		return m_collider.intersect(getOrientedBoxCollider(), getPlaneCollider());
 	}
 	else if (m_collider.getType() == TYPE::SPHERE)
 	{
@@ -44,7 +44,7 @@ IntersectData RigidBody::canCollideStatic()
 	}
 	else
 	{
-		std::cout << "Error: A collision between these shapes is not implemented yet.\n";
+		std::cout << "Error: Some of these STATIC collisions are not implemented yet.\n";
 		return IntersectData(false, .0f);
 	}
 }
@@ -59,9 +59,21 @@ IntersectData RigidBody::canCollideDynamic(RigidBody* other)
 	{
 		return m_collider.intersect(getAxisAlignedBoxCollider(), other->getOrientedBoxCollider());
 	}
+	else if (m_collider.getType() == TYPE::AABB && other->getCollider().getType() == TYPE::SPHERE)
+	{
+		return m_collider.intersect(other->getSphereCollider(), getAxisAlignedBoxCollider());
+	}
 	else if (m_collider.getType() == TYPE::OBB && other->getCollider().getType() == TYPE::OBB)
 	{
 		return m_collider.intersect(getOrientedBoxCollider(), other->getOrientedBoxCollider());
+	}
+	else if (m_collider.getType() == TYPE::OBB && other->getCollider().getType() == TYPE::AABB)
+	{
+		return m_collider.intersect(other->getAxisAlignedBoxCollider(), getOrientedBoxCollider());
+	}
+	else if (m_collider.getType() == TYPE::OBB && other->getCollider().getType() == TYPE::SPHERE)
+	{
+		return m_collider.intersect(other->getSphereCollider(), getOrientedBoxCollider());
 	}
 	else if (m_collider.getType() == TYPE::SPHERE && other->getCollider().getType() == TYPE::SPHERE)
 	{
@@ -77,14 +89,14 @@ IntersectData RigidBody::canCollideDynamic(RigidBody* other)
 	}
 	else
 	{
-		std::cout << "Error: A collision between these shapes is not implemented yet.\n";
+		std::cout << "Error: Some of these DYNAMIC collisions are not implemented yet.\n";
 		return IntersectData(false, .0f);
 	}
 }
 
 Plane RigidBody::getPlaneCollider()
 {
-	return Plane(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f);
+	return Plane(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f).normalized();
 }
 
 AABB RigidBody::getAxisAlignedBoxCollider()

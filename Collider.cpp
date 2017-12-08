@@ -47,23 +47,13 @@ IntersectData Collider::intersect(AABB aabb, OBB obb)
 
 IntersectData Collider::intersect(AABB aabb, Plane plane)
 {
-	// Get the Extense vector
-	glm::vec3 E = 0.5f * aabb.getSize();
-	// Get the center of the Box
-	glm::vec3 center = aabb.getMinExtents() + E;
-	glm::vec3 normal = plane.getNormal();
-	float radius = fabsf(normal.x * E.x) + fabsf(normal.y * E.y) + fabsf(normal.z * E.z);
-
-	BoundingSphere sphere(center, radius);
-
-	return intersect(sphere, plane);
-	/*
-	float pLen = aabb.getSize().x * fabsf(plane.getNormal().x) + aabb.getSize().y * fabsf(plane.getNormal().y) + aabb.getSize().z * fabsf(plane.getNormal().z);
-	float dot = glm::dot(plane.getNormal(), aabb.getPosition());
+	glm::vec3 normal = glm::normalize(plane.getNormal());
+	auto position = aabb.getCenter() + aabb.getMaxExtents();
+	float pLen = aabb.getSize().x * fabsf(normal.x) + aabb.getSize().y * fabsf(normal.y) + aabb.getSize().z * fabsf(normal.z);
+	float dot = glm::dot(normal, position);
 	float dist = dot - plane.getDistance();
 
-	return IntersectData(fabsf(dist) <= pLen, dist);
-	*/
+	return IntersectData(fabsf(dist) <= pLen, fabsf(dist));
 }
 
 IntersectData Collider::intersect(OBB obb1, OBB obb2)
@@ -104,7 +94,23 @@ IntersectData Collider::intersect(OBB obb1, OBB obb2)
 
 IntersectData Collider::intersect(OBB obb, Plane plane)
 {
-	return IntersectData(false, .0f);
+	// Local variables for readability only
+	const float* o = glm::value_ptr(obb.getOrientation());
+	// rotation / orientation
+	glm::vec3 rot[] = 
+	{ 
+		glm::vec3(o[0], o[1], o[2]),
+		glm::vec3(o[3], o[4], o[5]),
+		glm::vec3(o[6], o[7], o[8])
+	};
+	
+	glm::vec3 normal = glm::normalize(plane.getNormal());
+	float pLen = obb.getSize().x * fabsf(glm::dot(normal, rot[0])) + obb.getSize().y * fabsf(glm::dot(normal, rot[1])) + obb.getSize().z * fabsf(glm::dot(normal, rot[2]));
+	
+	float dot = glm::dot(normal, obb.getPosition());
+	float dist = dot - plane.getDistance();
+
+	return IntersectData(fabsf(dist) <= pLen, fabsf(dist));
 }
 
 IntersectData Collider::intersect(BoundingSphere sphere1, BoundingSphere sphere2)
@@ -136,16 +142,17 @@ IntersectData Collider::intersect(BoundingSphere sphere, OBB obb)
 
 IntersectData Collider::intersect(BoundingSphere sphere, Plane plane)
 {
-	float distanceFromSphereCenter = glm::dot(plane.getNormal(), sphere.getCenter()) - plane.getDistance();
+	glm::vec3 normal = glm::normalize(plane.getNormal());
+	float distanceFromSphereCenter = glm::dot(normal, sphere.getCenter()) - plane.getDistance();
 	float distanceFromSphere = distanceFromSphereCenter - sphere.getRadius();
 	// ...
-	auto sphereDiam = sphere.getRadius() * 2.0f;
-	bool sphereCenterInRange = distanceFromSphereCenter > -sphereDiam && distanceFromSphereCenter < sphereDiam;
+	auto radius = sphere.getRadius();
+	bool sphereCenterInRange = distanceFromSphereCenter > -radius && distanceFromSphereCenter < radius;
 	
-	return IntersectData(sphereCenterInRange, plane.getNormal() * distanceFromSphere);
+	return IntersectData(sphereCenterInRange, normal * distanceFromSphere);
 }
 
-glm::vec3 Collider::closestPoint(AABB aabb, const glm::vec3 & point)
+glm::vec3 Collider::closestPoint(AABB aabb, const glm::vec3& point)
 {
 	glm::vec3 result = point;
 	glm::vec3 min = aabb.getMinExtents();
@@ -162,7 +169,7 @@ glm::vec3 Collider::closestPoint(AABB aabb, const glm::vec3 & point)
 	return result;
 }
 
-glm::vec3 GPhysix::Collider::closestPoint(OBB obb, const glm::vec3 & point)
+glm::vec3 GPhysix::Collider::closestPoint(OBB obb, const glm::vec3& point)
 {
 	glm::vec3 result = obb.getPosition();
 	glm::vec3 dir = point - obb.getPosition();

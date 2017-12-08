@@ -41,7 +41,7 @@ namespace GPhysix
 		inline const glm::vec3& getMaxExtents() { return m_maxExtents; }
 
 		inline const glm::vec3& getSize() { return m_maxExtents - m_minExtents; }
-		inline const glm::vec3& getPosition() { return m_minExtents + (0.5f * getSize()); }
+		inline const glm::vec3& getCenter() { return m_minExtents + (0.5f * getSize()); }
 
 	private:
 		glm::vec3 m_minExtents;
