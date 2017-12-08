@@ -16,13 +16,13 @@
 #include "RigidBody.h"
 
 // MASS_SPRINGS, RIGID_BODY, DOMINO
-#define RIGID_BODY
+#define DOMINO
 
 namespace GPhysix
 {
 	namespace Time
 	{
-		static constexpr float deltaTime = 0.0005f;
+		static constexpr float deltaTime = 0.01f;
 	}
 
 	// TODO: Make static polymorphism for the basic/same funcs
@@ -39,7 +39,7 @@ namespace GPhysix
 
 			float m_accumulator;
 			GLfloat m_currentTime;
-		
+
 		public:
 			Simulation();
 			~Simulation() { }
@@ -69,6 +69,7 @@ namespace GPhysix
 			Application m_app;
 
 			float m_accumulator;
+			float m_timeMultiplier = 2.0f;
 			GLfloat m_currentTime;
 		
 		public:

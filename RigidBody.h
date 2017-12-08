@@ -3,6 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "Body.h"
+#include "Collider.h"
 
 namespace GPhysix
 {
@@ -13,6 +14,7 @@ namespace GPhysix
 			glm::mat3 m_invInertia; ///> inverse inertia
 			glm::vec3 m_angVel;		///> angular velocity
 			glm::vec3 m_angAcc;		///> angular acceleration
+			Collider m_collider;
 
 		public:
 			RigidBody() { };
@@ -34,5 +36,19 @@ namespace GPhysix
 
 			inline const glm::vec3& getScaleVec() const { return glm::vec3(getScale()[0].x, getScale()[1].y, getScale()[2].z); }
 			void updateInvInertia();
+			
+			Collider getCollider() { return m_collider; }
+			void addCollider(TYPE type) { m_collider.setType(type); }
+
+			// COLLISION DETECTION FUNCTION
+			IntersectData canCollideStatic();
+			IntersectData canCollideDynamic(RigidBody* other);
+
+		// CREATE COLLISION SHAPES FROM THE OBJECT
+		private:
+			Plane getPlaneCollider();
+			AABB getAxisAlignedBoxCollider();
+			OBB getOrientedBoxCollider();
+			BoundingSphere getSphereCollider();
 	};
 }

@@ -26,9 +26,7 @@ void Simulation<RigidBody>::BeginFrames()
 	GLfloat frameTime = newTime - m_currentTime;
 	m_currentTime = newTime;
 	m_accumulator += frameTime;
-	m_accumulator *= 1.0f;
-	// manage interaction
-	m_app.doMovement(Time::deltaTime);
+	m_accumulator *= m_timeMultiplier;
 }
 
 void Simulation<RigidBody>::EndFrames()

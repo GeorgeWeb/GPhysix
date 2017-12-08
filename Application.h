@@ -1,8 +1,14 @@
 #pragma once
 
-#include "Common.h"
+// GLEW
+#define GLEW_STATIC
+#include <GL/glew.h>
+
+// GLFW
+#include <GLFW/glfw3.h>
 
 // project includes
+#include "Common.h"
 #include "Camera.h"
 #include "Mesh.h"
 
@@ -10,47 +16,62 @@ namespace GPhysix
 {
 	class Application
 	{
-		private:
-			// view and projection matrices
-			glm::mat4 m_view = glm::mat4(1.0f);
-			glm::mat4 m_projection = glm::mat4(1.0f);
 
-			// window
-			GLFWwindow* m_window = nullptr;
-		public:
-			Application();
-			~Application();
+	public:
+		Application();
+		~Application();
 
-			// static variables for callback function
-			// window
-			static const GLuint WIDTH = 800;
-			static const GLuint HEIGHT = 600;
-			static int SCREEN_WIDTH, SCREEN_HEIGHT;
+		// static variables for callback function
+		// window
+		static const GLuint WIDTH = 800;
+		static const GLuint HEIGHT = 600;
+		static int SCREEN_WIDTH, SCREEN_HEIGHT;
 
-			// Camera
-			static Camera camera;
-			static double lastX;
-			static double lastY;
+		// Camera
+		static Camera camera;
+		static double lastX;
+		static double lastY;
 
-			static bool firstMouse;
-			static bool keys[1024];
+		static bool firstMouse;
+		static bool keys[1024];
+
+		static bool pauseSimulation;
 
 
-			// get and set methods
-			GLFWwindow* getWindow() { return m_window; }
+		// get and set methods
+		GLFWwindow* getWindow() { return m_window; }
+		Shader getShader() { return m_shader; }
 
-			// Function prototypes
+		// allocate shader to application
+		void setShader(const Shader &shader) {
+			m_shader = shader;
+			m_shader.Use();
+		}
 
-			//static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
-			//void scrollCallback(GLFWwindow *window, double xOffset, double yOffset);
-			//void mouseCallback(GLFWwindow *window, double xPos, double yPos);
-			void doMovement(GLfloat deltaTime);
-			int initRender();
+		// Function prototypes
 
-			// other functions
-			void clear();
-			void draw(const Mesh &mesh);
-			void display();
-			void terminate() { glfwTerminate(); }
+		//static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
+		//void scrollCallback(GLFWwindow *window, double xOffset, double yOffset);
+		//void mouseCallback(GLFWwindow *window, double xPos, double yPos);
+		void doMovement(GLfloat deltaTime);
+		int initRender();
+
+		// other functions
+		void clear();
+		void draw(const Mesh &mesh);
+		void display();
+		void terminate() { glfwTerminate(); }
+
+	private:
+
+		// view and projection matrices
+		glm::mat4 m_view = glm::mat4(1.0f);
+		glm::mat4 m_projection = glm::mat4(1.0f);
+		// default shader used for anything the application needs to draw that doesn't have a shader (such as lines)
+		Shader m_shader;
+
+		// window
+		GLFWwindow* m_window = NULL;
+
 	};
 }

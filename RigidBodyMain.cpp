@@ -42,6 +42,9 @@ void Update(const std::vector<RigidBody*>& rigidBodies, glm::vec3 plane)
 	// time-step and movement
 	while (sim->getAccumultor() >= Time::deltaTime)
 	{
+		// manage interaction
+		sim->getApp().doMovement(Time::deltaTime);
+
 		auto& rb = rigidBodies[0];
 
 		// calculate acceleration based on forces
@@ -61,7 +64,7 @@ void Update(const std::vector<RigidBody*>& rigidBodies, glm::vec3 plane)
 		rb->setRotate(glm::mat4(R));
 
 		#ifdef TASK1
-		const auto J = glm::vec3(-4.0f, 0.0f, 0.0f);
+		auto J = glm::vec3(-5.0f, 0.0f, 0.0f);
 		auto applicationPoint = glm::vec3(rb->getPos() - glm::vec3(1.0f, 1.0f, 0.0f));
 		applyImpulse(rb, J, applicationPoint, 2.0f);
 		#else
@@ -89,8 +92,16 @@ void Update(const std::vector<RigidBody*>& rigidBodies, glm::vec3 plane)
 			// get average point of collision from the colliding vertices
 			Vertex collisionPoint = calcCollisionPoint(collidingVertices, rb);
 
+			if (glm::length(rb->getVel()) + glm::length(rb->getAngVel()) < 0.1f)
+			{
+				rb->getVel() = glm::vec3(0.0f);
+				rb->getAngVel() = glm::vec3(0.0f);
+				rb->getAcc() = glm::vec3(0.0f);
+				displacement.y = 0.0f;
+			}
+
 			// handle the collision on response
-			handleStaticCollision(rb, collisionPoint, 0.7f, true);
+			handleStaticCollision(rb, collisionPoint, 0.8f, true);
 
 			#ifdef TASK2
 			if (!isCollisionStatPrinted)
@@ -123,7 +134,7 @@ auto main(void) -> int
 
 	// create ground plane
 	Mesh plane;
-	plane.scale(glm::vec3(100.0f, 0.0f, 100.0f));
+	plane.scale(glm::vec3(100.0f, 1.0f, 100.0f));
 	plane.setShader(Shader("resources/shaders/core.vert", "resources/shaders/core.frag"));
 	
 	// create rigid body cube from mesh
@@ -132,8 +143,15 @@ auto main(void) -> int
 	cube.setMass(2.0f);
 	cube.scale(glm::vec3(1.0f, 3.0f, 1.0f));
 	cube.translate(glm::vec3(0.0f, 10.0f, 0.0f));
-	cube.setVel(glm::vec3(3.0f, 0.0f, 0.0f));
+	#ifdef TASK1
+	cube.setVel(glm::vec3(2.0f, 0.0f, 0.0f));
+	cube.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	#else
+	cube.setVel(glm::vec3(2.0f, 0.0f, 0.0f));
 	cube.setAngVel(glm::vec3(0.1f, 0.1f, 0.1f));
+	#endif
+	// Output the inverse intertia
+	std::cout << "Inverse inertia: " << glm::to_string(cube.getInvInertia()) << "\n\n";
 
 	// Create forces
 	Gravity g;
@@ -173,7 +191,7 @@ void handleStaticCollision(RigidBody* rb, Vertex collisionPoint, float e, bool a
 	if (applyFriction)
 	{
 		glm::vec3 vt = vr - glm::dot(vr, n) * n;
-		constexpr float mu = 0.06f;
+		constexpr float mu = 0.1f;
 		glm::vec3 jFriction = -mu * glm::length(jCollision) * glm::normalize(vt);
 		
 		if (glm::length(jCollision) > 0.0f)
