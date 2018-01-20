@@ -8,12 +8,15 @@ void Body::addForce(Force *force)
 	m_forces.push_back(force);
 }
 
-const glm::vec3 &GPhysix::Body::applyForces(const glm::vec3 &pos, const glm::vec3 &vel)
+const glm::vec3 &Body::applyForces(const glm::vec3 &pos, const glm::vec3 &vel)
 {
 	// init accumulator
 	glm::vec3 fAccumulator = glm::vec3(0.0f);
 	// sum/accum forces
-	for (auto &f : m_forces) fAccumulator += f->apply(getMass(), pos, vel);
+	for (auto &f : m_forces)
+	{
+		fAccumulator += f->apply(getMass(), pos, vel);
+	}
 	// return force/mass
 	return fAccumulator / getMass();
 }
@@ -35,8 +38,14 @@ void Body::scale(const glm::vec3 &vect)
 	m_mesh.scale(vect);
 }
 
-void Body::move(const glm::vec3 &newVel, const glm::vec3 &newPos)
+void Body::integrate(const float deltaTime)
 {
-	setVel(newVel);
-	setPos(newPos);
+	setVel(getVel() + (getAcc() * deltaTime));
+	setPos(getPos() + (getVel() * deltaTime));
+}
+
+void Body::move()
+{
+	setVel(getVel());
+	setPos(getPos());
 }

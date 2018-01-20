@@ -168,7 +168,9 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Body.cpp" />
+    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Drag.cpp" />
+    <ClCompile Include="FinalProject.cpp" />
     <ClCompile Include="Gravity.cpp" />
     <ClCompile Include="Hook.cpp" />
     <ClCompile Include="MassSpringsMain.cpp" />
@@ -191,8 +193,11 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Body.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Collider.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Force.h" />
+    <ClInclude Include="Geometry.h" />
+    <ClInclude Include="CollisionManifold.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Particle.h" />

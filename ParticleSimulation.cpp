@@ -21,18 +21,6 @@ void Simulation<Particle>::CreateParticle(Particle& particle, const glm::vec3& t
 	particle.getMesh().setShader(Shader("resources/shaders/core.vert", "resources/shaders/core_blue.frag"));
 }
 
-void Simulation<Particle>::IntegrateSI(Particle& particle)
-{
-	particle.getVel() += particle.getAcc() * Time::deltaTime;
-	particle.getPos() += particle.getVel() * Time::deltaTime;
-}
-
-void Simulation<Particle>::IntegrateEX(Particle& particle)
-{
-	particle.getPos() += particle.getVel() * Time::deltaTime;
-	particle.getVel() += particle.getAcc() * Time::deltaTime;
-}
-
 bool Simulation<Particle>::inBoundaries(const Mesh& particleMesh, const Mesh& boundingBox, const int coordIndex)
 {
 	bool minCheck = particleMesh.getPos()[coordIndex] >= boundingBox.getPos()[coordIndex] + .5f;

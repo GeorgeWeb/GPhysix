@@ -22,6 +22,7 @@ namespace GPhysix
 	const GLfloat SENSITIVTY = 0.25f;
 	const GLfloat ZOOM = 45.0f;
 
+
 	class Camera
 	{
 	public:
@@ -44,6 +45,9 @@ namespace GPhysix
 			m_pitch = pitch;
 			updateCameraVectors();
 		}
+
+		// get position
+		glm::vec3 getPosition() { return m_position; }
 
 		// Returns the view matrix calculated using Eular Angles and the LookAt Matrix
 		glm::mat4 GetViewMatrix()

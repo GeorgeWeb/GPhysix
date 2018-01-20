@@ -3,8 +3,6 @@
 // Std. Includes
 #include <string>
 #include <time.h>
-#include <array>
-#include <algorithm>
 #include <functional>
 
 // Other Libs
@@ -18,13 +16,13 @@
 #include "RigidBody.h"
 
 // MASS_SPRINGS, RIGID_BODY, DOMINO
-#define RIGID_BODY
+#define DOMINO
 
 namespace GPhysix
 {
 	namespace Time
 	{
-		static constexpr float deltaTime = 0.0005f;
+		static constexpr float deltaTime = 0.003f;
 	}
 	
 	template<class BodyType>
@@ -39,10 +37,11 @@ namespace GPhysix
 
 			float m_accumulator;
 			GLfloat m_currentTime;
+
 		public:
 			Simulation();
 			~Simulation() { }
-		public:
+	
 			inline Application &getApp() { return m_app; };
 			inline float &getAccumultor() { return m_accumulator; };
 			inline const bool &IsRunning() { return !glfwWindowShouldClose(m_app.getWindow()); }
@@ -53,10 +52,8 @@ namespace GPhysix
 			void BeginFrames();
 			void EndFrames();
 			void Exit();
-		public:
+		
 			void CreateParticle(Particle &particle, const glm::vec3 &translation);
-			void IntegrateSI(Particle &particle);
-			void IntegrateEX(Particle &particle);
 			bool inBoundaries(const Mesh &particleMesh, const Mesh &boundingBox, const int coordIndex);
 			void CollisionDetection(const Mesh &boundingBox, Particle &particle);
 			void CollisionDetectionForCloth(const Mesh &boundingBox, Particle &particle);
@@ -70,22 +67,22 @@ namespace GPhysix
 			Application m_app;
 
 			float m_accumulator;
+			const float m_timeMultiplier = 0.25f;
 			GLfloat m_currentTime;
+		
 		public:
 			Simulation();
 			~Simulation() { }
-		public:
+		
 			inline Application &getApp() { return m_app; };
 			inline float &getAccumultor() { return m_accumulator; };
 			inline const bool &IsRunning() { return !glfwWindowShouldClose(m_app.getWindow()); }
 
 			inline void Draw(const Mesh& mesh) { m_app.draw(mesh); }
-			inline void Draw(RigidBody& rigBody) { m_app.draw(rigBody.getMesh()); }
+			inline void Draw(RigidBody* rigBody) { m_app.draw(rigBody->getMesh()); }
 
 			void BeginFrames();
 			void EndFrames();
 			void Exit();
-		public:
-			void Integrate(RigidBody& rigBody);
 	};
 }
