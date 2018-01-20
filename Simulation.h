@@ -22,10 +22,8 @@ namespace GPhysix
 {
 	namespace Time
 	{
-		static constexpr float deltaTime = 0.01f;
+		static constexpr float deltaTime = 0.003f;
 	}
-
-	// TODO: Make static polymorphism for the basic/same funcs
 	
 	template<class BodyType>
 	class Simulation { };
@@ -69,7 +67,7 @@ namespace GPhysix
 			Application m_app;
 
 			float m_accumulator;
-			float m_timeMultiplier = 2.0f;
+			const float m_timeMultiplier = 0.25f;
 			GLfloat m_currentTime;
 		
 		public:

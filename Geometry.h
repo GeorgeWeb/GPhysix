@@ -1,19 +1,37 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include "IntersectData.h"
+#include "CollisionManifold.h"
 
 namespace GPhysix
 {
+	typedef struct Interval
+	{
+		float min;
+		float max;
+	} Interval;
+
 	class Geometry
 	{
 		protected:
 			Geometry() = default;
 	};
 
+	class Line : Geometry
+	{
+		public:
+			Line() : Geometry() {}
+			Line(const glm::vec3& s, const glm::vec3& e) : start(s), end(e) {}
+			
+			glm::vec3 start;
+			glm::vec3 end;
+	};
+
 	class Plane
 	{
 		public:
+			Plane() : m_normal(glm::vec3(0.0f, 1.0f, 0.0f)), m_distance(0.0f) {}
+
 			Plane(const glm::vec3 normal, float distance) :
 				m_normal(normal),
 				m_distance(distance)
@@ -29,25 +47,6 @@ namespace GPhysix
 			float m_distance;
 	};
 	
-	class AABB : public Geometry
-	{
-	public:
-		AABB(const glm::vec3& minExtents, const glm::vec3& maxExtents) :
-			m_minExtents(minExtents),
-			m_maxExtents(maxExtents)
-		{ }
-
-		inline const glm::vec3& getMinExtents() { return m_minExtents; }
-		inline const glm::vec3& getMaxExtents() { return m_maxExtents; }
-
-		inline const glm::vec3& getSize() { return m_maxExtents - m_minExtents; }
-		inline const glm::vec3& getCenter() { return m_minExtents + (0.5f * getSize()); }
-
-	private:
-		glm::vec3 m_minExtents;
-		glm::vec3 m_maxExtents;
-	};
-
 	class OBB : public Geometry
 	{
 		public:

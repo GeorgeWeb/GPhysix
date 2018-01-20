@@ -41,13 +41,11 @@ namespace GPhysix
 			void addCollider(TYPE type) { m_collider.setType(type); }
 
 			// COLLISION DETECTION FUNCTION
-			IntersectData canCollideStatic();
-			IntersectData canCollideDynamic(RigidBody* other);
+			CollisionManifold canCollideStatic();
+			CollisionManifold canCollide(RigidBody* other);
 
 		// CREATE COLLISION SHAPES FROM THE OBJECT
 		private:
-			Plane getPlaneCollider();
-			AABB getAxisAlignedBoxCollider();
 			OBB getOrientedBoxCollider();
 			BoundingSphere getSphereCollider();
 	};

@@ -182,7 +182,6 @@
     <ClCompile Include="RigidBodyMain.cpp" />
     <ClCompile Include="ParticleSimulation.cpp" />
     <ClCompile Include="RigidBodySimulation.cpp" />
-    <ClCompile Include="SeparatedAxis.cpp" />
     <ClCompile Include="Wind.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -198,7 +197,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Force.h" />
     <ClInclude Include="Geometry.h" />
-    <ClInclude Include="IntersectData.h" />
+    <ClInclude Include="CollisionManifold.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Particle.h" />
